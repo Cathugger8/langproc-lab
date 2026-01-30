@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cassert>
 
-extern int comment_counter;
+extern int removed_counter;
 
 // This is the yylval variable that the nocomment.hpp header file refers to.
 TokenValue yylval;
@@ -31,7 +31,7 @@ int main () {
     }
   }
 
-  std::cout << "Number of comments and attributes removed:" << removed_count. << ".\n";
+  std::cout << "Number of comments and attributes removed: " << removed_counter << ".\n";
     
   return 0;
 }
