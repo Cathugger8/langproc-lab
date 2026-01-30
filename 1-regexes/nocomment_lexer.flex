@@ -1,20 +1,9 @@
-%option noyywrap
-
-%{
-
-#include "nocomment.hpp"
-
-// The following line avoids an annoying warning in Flex
-// See: https://stackoverflow.com/questions/46213840/
-extern "C" int fileno(FILE *stream);
-int removed_count = 0;
-%}
 %x COMMENT ESCAPED ATTRIBUTE
 
 %%
 
-"//"{
-removed_count++;
+"//" {
+  removed_count++;
   BEGIN(COMMENT);
 }
 
@@ -23,49 +12,33 @@ removed_count++;
   yylval.character = '\n';
   return Other;
 }
+<COMMENT>.  ;
 
-<COMMENT>. ;
-
-"\\"{
+"\\" { 
   BEGIN(ESCAPED);
 }
 
-<ESCAPED>\n {
-  BEGIN(INITIAL);
-  yylval.character = '\n';
-}
+<ESCAPED>[^\n ]+  ;
 
-<ESCAPED>. {
+<ESCAPED>[ \n] {
+  BEGIN(INITIAL);
   yylval.character = yytext[0];
   return Other;
 }
 
-"(*"{
-  BEGIN(ATTRIBUTE);
+"(*" {
   removed_count++;
+  BEGIN(ATTRIBUTE);
 }
+<ATTRIBUTE>"*)" { BEGIN(INITIAL); }
+<ATTRIBUTE>\n   ;
+<ATTRIBUTE>.    ;
 
-<ATTRIBUTE>"*)" {
-  BEGIN(INITIAL);
-  return Other;
-}
-
-<ATTRIBUTE>. ;
-
-. {
+.|\n {
   yylval.character = yytext[0];
   return Other;
 }
 
-EOF {
-  return Eof;
-}
+<<EOF>> { return Eof; }
 
 %%
-
-/* Error handler. This will get called if none of the rules match. */
-void yyerror (char const *s)
-{
-  fprintf (stderr, "Flex Error: %s\n", s);
-  exit(1);
-}
